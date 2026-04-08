@@ -1,4 +1,4 @@
-name: Generate Audio Spectrum
+name: Generate Audio Spectrum part 2
 
 on:
   workflow_dispatch: # Menjalankan manual dari tab Actions
