@@ -1,4 +1,4 @@
-name: Generate Audio Spectrum Bar
+name: Generate Audio Spectrum
 
 on:
   workflow_dispatch:
@@ -15,7 +15,8 @@ jobs:
 
       - name: Create Spectrum Video
         run: |
-          ffmpeg -i input/audio.mp3 -filter_complex \
+          # Perintah ini langsung mengambil audio.mp3 dari root repositori
+          ffmpeg -i audio.mp3 -filter_complex \
           "[0:a]showwaves=s=1280x720:mode=line:colors=white:draw=scale[v]" \
           -map "[v]" -map 0:a -c:v libx264 -pix_fmt yuv420p -preset fast -crf 22 -c:a copy -shortest output.mp4
 
@@ -24,4 +25,3 @@ jobs:
         with:
           name: spectrum-video
           path: output.mp4
-          
