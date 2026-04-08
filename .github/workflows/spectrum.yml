@@ -1,0 +1,41 @@
+name: Generate Audio Spectrum
+
+on:
+  workflow_dispatch: # Menjalankan manual dari tab Actions
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Create Spectrum Video
+        run: |
+          # Mencari file audio.mp3 secara otomatis di folder manapun
+          FILE_AUDIO=$(find . -name "audio.mp3" | head -n 1)
+          
+          if [ -z "$FILE_AUDIO" ]; then
+            echo "ERROR: File audio.mp3 tidak ditemukan! Pastikan sudah upload file dengan nama tersebut."
+            exit 1
+          fi
+          
+          echo "Sedang memproses: $FILE_AUDIO"
+          
+          # Render video dengan setting hemat ukuran file (Bitrate & CRF dioptimasi)
+          ffmpeg -i "$FILE_AUDIO" -filter_complex \
+          "[0:a]showwaves=s=1280x720:mode=line:colors=white:draw=scale[v]" \
+          -map "[v]" -map 0:a \
+          -c:v libx264 -pix_fmt yuv420p \
+          -preset veryfast -crf 28 \
+          -b:v 1M -maxrate 1.5M -bufsize 2M \
+          -c:a copy -shortest output.mp4
+
+      - name: Upload Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectrum-video
+          path: output.mp4
