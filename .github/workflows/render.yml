@@ -1,0 +1,27 @@
+name: Generate Audio Spectrum Bar
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Create Spectrum Video
+        run: |
+          ffmpeg -i input/audio.mp3 -filter_complex \
+          "[0:a]showwaves=s=1280x720:mode=line:colors=white:draw=scale[v]" \
+          -map "[v]" -map 0:a -c:v libx264 -pix_fmt yuv420p -preset fast -crf 22 -c:a copy -shortest output.mp4
+
+      - name: Upload Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectrum-video
+          path: output.mp4
+          
