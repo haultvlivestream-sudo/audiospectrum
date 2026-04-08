@@ -10,13 +10,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Debug - List Files
+        run: |
+          echo "Daftar file yang ada di server saat ini:"
+          ls -R
+
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Create Spectrum Video
         run: |
-          # Perintah ini langsung mengambil audio.mp3 dari root repositori
-          ffmpeg -i audio.mp3 -filter_complex \
+          # Perintah ini akan mencoba mencari file audio.mp3 secara otomatis
+          FILE_AUDIO=$(find . -name "audio.mp3" | head -n 1)
+          
+          if [ -z "$FILE_AUDIO" ]; then
+            echo "ERROR: File audio.mp3 tidak ditemukan di folder manapun!"
+            exit 1
+          fi
+          
+          echo "Memproses file: $FILE_AUDIO"
+          
+          ffmpeg -i "$FILE_AUDIO" -filter_complex \
           "[0:a]showwaves=s=1280x720:mode=line:colors=white:draw=scale[v]" \
           -map "[v]" -map 0:a -c:v libx264 -pix_fmt yuv420p -preset fast -crf 22 -c:a copy -shortest output.mp4
 
